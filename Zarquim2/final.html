@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem vindo</title>
+    <style>
+      body {
+        background-color: white;
+      }
+      
+      header {
+            text-align: center;
+        }
+
+        ul {
+            background-color: rgb(190, 190, 190);
+        }
+        li {
+            cursor: pointer;
+        }
+    </style>
+    <script src="script.js"></script>
+</head>
+<body>
+    <header>
+        Peças | Monte seu Computador
+    </header>
+    <ul>
+        <li onclick="Carregar('cpu')">CPUs</li>
+        <li onclick="Carregar('gpu')">GPUs</li>
+        <li onclick="Carregar('monitor')">Monitores</li>
+        <li onclick="Carregar('ram')">Memorias RAM</li>
+        <li onclick="Carregar('mae')">Placas Mães</li>
+        <li onclick="Carregar('fan')">Coolers</li>
+    </ul>
+<div id="detalhe"></div>
+    <footer>
+        <a href="https://www.google.com">google</a>
+    </footer>
+
+
+</body>
+</html>
