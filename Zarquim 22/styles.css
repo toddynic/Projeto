@@ -1,0 +1,55 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Define o body como um flex container centralizado */
+body {
+    height: 100vh; /* altura total da viewport */
+    display: flex;
+    justify-content: center; /* centraliza horizontalmente */
+    align-items: center;     /* centraliza verticalmente */
+    background-color: #f2f2f2; /* só para estética */
+    font-family: Arial, sans-serif;
+    background-color: rgb(0, 255,0);
+}
+
+/* Estiliza o container de login */
+.login-container {
+    background-color: rgb(255, 255, 0);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
+    text-align: center;
+}
+
+.login-container input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0000ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-container h1 {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: white;
+    background-color: rgb(0, 0, 255);
+    border-radius: 20px;
+}
+
+.login-container button:hover {
+    background-color: #0056b3;
+}
