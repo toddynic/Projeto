@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz Dos Enforcados</title>
+  <link rel="manifest" href="manifest.json" />
+  <script src="service-worker.js"></script>
+ <meta name="theme-color" content="#333333" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .quiz-question {
+      background: #fff;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      max-width: 600px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      font-size: 1.2em;
+    }
+
+    .word-display {
+      font-size: 2em;
+      letter-spacing: 0.4em;
+      margin-bottom: 15px;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    .letters {
+      margin-bottom: 20px;
+    }
+
+    .letters button {
+      padding: 10px 15px;
+      margin: 3px;
+      font-size: 1.1em;
+      cursor: pointer;
+      border: 2px solid #333;
+      border-radius: 4px;
+      background-color: white;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .letters button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      border-color: #999;
+    }
+
+    .message {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      min-height: 30px;
+    }
+
+    .forca {
+      width: 200px;
+      height: 250px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    /* Forca base */
+    .forca-base {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 150px;
+      height: 10px;
+      background-color: #333;
+    }
+
+    /* Pilar vertical */
+    .forca-pilar {
+      position: absolute;
+      bottom: 10px;
+      left: 40px;
+      width: 10px;
+      height: 200px;
+      background-color: #333;
+    }
+
+    /* Barra horizontal */
+    .forca-barra {
+      position: absolute;
+      bottom: 210px;
+      left: 40px;
+      width: 100px;
+      height: 10px;
+      background-color: #333;
+    }
+
+    /* Corda */
+    .forca-corda {
+      position: absolute;
+      bottom: 190px;
+      left: 135px;
+      width: 5px;
+      height: 25px;
+      background-color: #333;
+
+    }
+
+    /* Partes do corpo */
+    .head, .body, .left-arm, .right-arm, .left-leg, .right-leg {
+      position: absolute;
+      background-color: #333;
+    }
+
+    .head {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      top: 60px;
+      left: 117px;
+    }
+
+    .body {
+      width: 10px;
+      height: 70px;
+      top: 98px;
+      left: 132px;
+    }
+
+    .left-arm {
+      width: 50px;
+      height: 10px;
+      top: 120px;
+      left: 85px;
+      transform-origin: right center;
+      transform: rotate(45deg);
+    }
+
+    .right-arm {
+      width: 52px;
+      height: 10px;
+      top: 123px;
+      left: 136px;
+      transform-origin: left center;
+      transform: rotate(-45deg);
+    }
+
+    .left-leg {
+      width: 50px;
+      height: 10px;
+      top: 153px;
+      left: 88px;
+      transform-origin: right center;
+      transform: rotate(-45deg);
+    }
+
+    .right-leg {
+      width: 50px;
+      height: 10px;
+      top: 153px;
+      left: 136px;
+      transform-origin: left center;
+      transform: rotate(45deg);
+    }
+
+    button.restart-btn {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background-color: #4caf50;
+      color: white;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+    }
+
+    button.restart-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Quiz dos Enforcados</h1>
+
+  <div class="quiz-question" id="question"></div>
+
+  <div class="forca" id="forca">
+    <div class="forca-base"></div>
+    <div class="forca-pilar"></div>
+    <div class="forca-barra"></div>
+    <div class="forca-corda"></div>
+
+    <div class="head" style="display:none"></div>
+    <div class="body" style="display:none"></div>
+    <div class="left-arm" style="display:none"></div>
+    <div class="right-arm" style="display:none"></div>
+    <div class="left-leg" style="display:none"></div>
+    <div class="right-leg" style="display:none"></div>
+  </div>
+
+  <div class="word-display" id="word"></div>
+
+  <div class="letters" id="letters"></div>
+
+  <div class="message" id="message"></div>
+
+  <button class="restart-btn" id="restart" style="display:none;">Jogar Novamente</button>
+
+  <script>
+    const quizData = [
+      {
+        question: "Qual é o maior planeta do sistema solar?",
+        answer: "JUPITER"
+      },
+      {
+        question: "Qual a capital do Brasil?",
+        answer: "BRASILIA"
+      },
+      {
+        question: "Em que continente fica o Egito?",
+        answer: "AFRICA"
+      },
+      {
+        question: "Qual é o elemento químico com símbolo O?",
+        answer: "OXIGENIO"
+      },
+      {
+        question: "Quem escreveu 'Dom Casmurro'?",
+        answer: "MACHADODEASSIS"
+      },
+      {
+        question: "Quem foi o melhor presidente do Brasil❤️❤️❤️❤️",
+        answer: "BOLSONARO "
+      }
+    ];
+
+    const maxErrors = 6; // número de partes do corpo
+
+    let currentQuestionIndex = 0;
+    let answer = "";
+    let guessedLetters = new Set();
+    let errors = 0;
+
+    const questionElem = document.getElementById("question");
+    const wordElem = document.getElementById("word");
+    const lettersElem = document.getElementById("letters");
+    const messageElem = document.getElementById("message");
+    const forcaElem = document.getElementById("forca");
+    const restartBtn = document.getElementById("restart");
+
+    const bodyParts = [
+      document.querySelector(".head"),
+      document.querySelector(".body"),
+      document.querySelector(".left-arm"),
+      document.querySelector(".right-arm"),
+      document.querySelector(".left-leg"),
+      document.querySelector(".right-leg"),
+    ];
+
+    function startGame() {
+      guessedLetters.clear();
+      errors = 0;
+      restartBtn.style.display = "none";
+      messageElem.textContent = "";
+      bodyParts.forEach(part => part.style.display = "none");
+
+      // pegar questão e resposta atual
+      const quiz = quizData[currentQuestionIndex];
+      answer = quiz.answer.toUpperCase();
+      questionElem.textContent = quiz.question;
+
+      // criar display da palavra com underscores
+      updateWordDisplay();
+
+      // criar teclado
+      createKeyboard();
+
+      // limpar mensagens
+      messageElem.textContent = "";
+    }
+
+    function updateWordDisplay() {
+      let display = "";
+      for (let letter of answer) {
+        if (letter === " ") {
+          display += "  "; // espaço duplo para separar palavras
+        } else if (guessedLetters.has(letter)) {
+          display += letter + " ";
+        } else {
+          display += "_ ";
+        }
+      }
+      wordElem.textContent = display.trim();
+    }
+
+    function createKeyboard() {
+      lettersElem.innerHTML = "";
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (let letter of alphabet) {
+        const btn = document.createElement("button");
+        btn.textContent = letter;
+        btn.addEventListener("click", () => handleGuess(letter, btn));
+        lettersElem.appendChild(btn);
+      }
+    }
+
+    function handleGuess(letter, button) {
+      button.disabled = true;
+      if (answer.includes(letter)) {
+        guessedLetters.add(letter);
+        updateWordDisplay();
+        checkWin();
+      } else {
+        errors++;
+        showBodyPart(errors);
+        checkLose();
+      }
+    }
+
+    function showBodyPart(errorCount) {
+      if (errorCount > 0 && errorCount <= maxErrors) {
+        bodyParts[errorCount - 1].style.display = "block";
+      }
+    }
+
+    function checkWin() {
+      let won = true;
+      for (let letter of answer) {
+        if (letter !== " " && !guessedLetters.has(letter)) {
+          won = false;
+          break;
+        }
+      }
+      if (won) {
+        messageElem.textContent = "Parabéns! Você acertou!";
+        disableKeyboard();
+        nextQuestionOrEnd();
+      }
+    }
+
+    function checkLose() {
+      if (errors >= maxErrors) {
+        messageElem.textContent = `Você perdeu! A resposta era: ${answer}`;
+        revealWord();
+        disableKeyboard();
+        nextQuestionOrEnd();
+      }
+    }
+
+    function disableKeyboard() {
+      const buttons = lettersElem.querySelectorAll("button");
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    function revealWord() {
+      let display = "";
+      for (let letter of answer) {
+        display += letter + " ";
+      }
+      wordElem.textContent = display.trim();
+    }
+
+    function nextQuestionOrEnd() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < quizData.length) {
+        restartBtn.style.display = "inline-block";
+        restartBtn.textContent = "Próxima pergunta";
+      } else {
+        restartBtn.style.display = "inline-block";
+        restartBtn.textContent = "Reiniciar jogo";
+      }
+    }
+
+    restartBtn.addEventListener("click", () => {
+      if (currentQuestionIndex >= quizData.length) {
+        currentQuestionIndex = 0; // reinicia o jogo
+      }
+      startGame();
+    });
+
+    // iniciar jogo
+    startGame();
+  </script>
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(() => console.log('Service Worker registrado com sucesso!'))
+      .catch((err) => console.log('Falha ao registrar Service Worker:', err));
+  }
+</script>
+
+</body>
+</html>
