@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Fórum Bolsonaro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <meta name="theme-color" content="#009739">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+
+    header {
+      background-color: #009739;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    header img {
+      position: absolute;
+      right: 20px;
+      top: 10px;
+      height: 80px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px black;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    .forum-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #fffbea;
+      border: 2px solid #f1c40f;
+      border-radius: 10px;
+    }
+
+    .new-post {
+      margin-bottom: 30px;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #f1c40f;
+      color: black;
+      font-weight: bold;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #e1b700;
+    }
+
+    .post {
+      border-top: 1px solid #ccc;
+      padding: 15px 0;
+    }
+
+    .post-user {
+      font-weight: bold;
+      color: #009739;
+    }
+
+    .post-content {
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      padding: 20px;
+      background-color: #009739;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Fórum do Bolsonaro - Apoie o mito!</h1>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Jair_Bolsonaro_2019_Portrait_%283x4_cropped_center%29.jpg/330px-Jair_Bolsonaro_2019_Portrait_%283x4_cropped_center%29.jpg" alt="Bolsonaro">
+  </header>
+
+  <div class="forum-container">
+    <div class="new-post">
+      <h2>Nova Mensagem</h2>
+      <input id="novonome" type="text" placeholder="Digite seu nome...">
+      <textarea id="novaMensagem" placeholder="Digite sua mensagem..."></textarea>
+      <button onclick="postarMensagem()">Postar</button>
+    </div>
+
+    <div id="posts">
+      <!-- Mensagens aparecerão aqui -->
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 Fórum do Bolsonaro - Pátria Amada Brasil
+  </footer>
+
+  <script>
+    async function carregarMensagens() {
+      try {
+        const resposta = await fetch('/.netlify/functions/getMensagens');
+        const mensagens = await resposta.json();
+        const postsContainer = document.getElementById('posts');
+        postsContainer.innerHTML = '';
+
+        mensagens.forEach(msg => {
+          const postDiv = document.createElement('div');
+          postDiv.classList.add('post');
+          postDiv.innerHTML = `
+            <div class="post-user">${msg.nome}</div>
+            <div class="post-content">${msg.mensagem}</div>
+          `;
+          postsContainer.appendChild(postDiv);
+        });
+      } catch (e) {
+        console.error('Erro ao carregar mensagens:', e);
+      }
+    }
+
+    async function postarMensagem() {
+      const nomeInput = document.getElementById('novonome');
+      const msgInput = document.getElementById('novaMensagem');
+      const nome = nomeInput.value.trim() || 'Usuário Anônimo';
+      const mensagem = msgInput.value.trim();
+
+      if (!mensagem) {
+        alert("Digite alguma coisa!");
+        return;
+      }
+
+      try {
+        await fetch('/.netlify/functions/postMensagem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, mensagem })
+        });
+
+        nomeInput.value = '';
+        msgInput.value = '';
+        carregarMensagens();
+      } catch (e) {
+        console.error('Erro ao postar mensagem:', e);
+      }
+    }
+
+    // Carrega mensagens ao iniciar
+    window.onload = () => {
+      carregarMensagens();
+
+      // Register service worker (opcional)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(() => console.log('Service Worker registrado.'))
+          .catch(err => console.error('Erro ao registrar SW:', err));
+      }
+    };
+  </script>
+
+</body>
+</html>
